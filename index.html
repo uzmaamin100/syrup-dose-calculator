@@ -168,6 +168,19 @@
       font-weight: 600;
     }
 
+    .mistake {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-left: 5px solid var(--danger-border);
+      border-radius: 12px;
+      padding: 0.9rem 1.1rem;
+      margin-top: 1rem;
+      font-size: 0.95rem;
+    }
+
+    .mistake p { margin: 0.4rem 0; }
+    .mistake ul { margin: 0.3rem 0; padding-left: 1.2rem; }
+
     .card {
       background: var(--card);
       border: 1px solid var(--line);
@@ -401,12 +414,23 @@
       <ul class="safety-list">
         <li>Maximum-dose cap</li>
         <li>Rounds down when capped</li>
+        <li>Daily maximum check</li>
         <li>High-weight warning</li>
         <li>Per dose vs per day labels</li>
         <li>Input checks</li>
         <li>Full visible working</li>
         <li>No stored drug data</li>
       </ul>
+
+      <div class="mistake">
+        <strong>A real mistake this catches: normal vs "double strength" syrup</strong>
+        <p>The same child needs the same mg dose, but the mL depends on the bottle. For a 60 mg dose:</p>
+        <ul>
+          <li>Syrup 100 mg in 5 mL: give <strong>3.0 mL</strong></li>
+          <li>Double-strength syrup 200 mg in 5 mL: give <strong>1.5 mL</strong></li>
+        </ul>
+        <p>Using the normal-strength mL with a double-strength bottle would give the child <strong>twice the dose</strong>. That is why this app always asks for the strength printed on the bottle.</p>
+      </div>
       <h2 class="section-title">Calculate a dose</h2>
     </section>
 
@@ -451,6 +475,12 @@
         <input id="max-mg" name="max-mg" type="text" inputmode="decimal" autocomplete="off">
       </div>
 
+      <div class="field">
+        <label for="max-day">Maximum per day (mg) — optional</label>
+        <p class="hint">The highest <strong>total</strong> for 24 hours, from the leaflet or reference. Leave blank if not needed.</p>
+        <input id="max-day" name="max-day" type="text" inputmode="decimal" autocomplete="off">
+      </div>
+
       <div class="actions">
         <button type="submit" class="btn-calc">Calculate</button>
         <button type="button" class="btn-clear" id="clear-btn">Clear</button>
@@ -460,6 +490,7 @@
     <div id="errors" class="errors hidden" role="alert"></div>
     <div id="weight-warning" class="weight-note hidden" role="status"></div>
     <div id="max-warning" class="max-warning hidden" role="alert"></div>
+    <div id="day-warning" class="max-warning hidden" role="alert"></div>
 
     <div id="give" class="give hidden" aria-live="polite">
       <p class="label">Give</p>
@@ -492,7 +523,7 @@
 
     <footer>
       <p>No medicine names or usual doses are stored in this app. Doses must come from a trusted reference, such as the BNF for Children or the WHO AWaRe Antibiotic Book.</p>
-      <p>Rounding: mL is shown to 1 decimal place. If a maximum cap was used, mL is rounded down so it does not go above that maximum.</p>
+      <p>Rounding: mL is shown to 1 decimal place. If a maximum cap was used, mL is rounded down so it does not go above that maximum. The daily maximum is a warning only; it does not change the dose.</p>
       <p>Designed by Uzma Amin, Pharmacist · Built with AI-assisted coding in Cursor · iSkills SEBT Next</p>
     </footer>
   </main>
@@ -546,6 +577,7 @@
     var errorsEl = document.getElementById("errors");
     var weightWarningEl = document.getElementById("weight-warning");
     var maxWarningEl = document.getElementById("max-warning");
+    var dayWarningEl = document.getElementById("day-warning");
     var giveEl = document.getElementById("give");
     var resultsEl = document.getElementById("results");
     var formulaCard = document.getElementById("formula-card");
@@ -555,6 +587,7 @@
       errorsEl.classList.add("hidden");
       weightWarningEl.classList.add("hidden");
       maxWarningEl.classList.add("hidden");
+      dayWarningEl.classList.add("hidden");
       giveEl.classList.add("hidden");
       resultsEl.classList.add("hidden");
       formulaCard.classList.add("hidden");
@@ -578,6 +611,7 @@
       var strengthMlIn = parseNumber(document.getElementById("strength-ml").value);
       var maxRaw = document.getElementById("max-mg").value;
       var maxIn = parseNumber(maxRaw);
+      var maxDayIn = parseNumber(document.getElementById("max-day").value);
 
       var messages = [];
 
@@ -612,6 +646,14 @@
         else if (maxIn.value < 0) messages.push("Maximum dose cannot be a negative number.");
         else if (maxIn.value === 0) messages.push("Maximum dose cannot be zero. Leave it blank if you do not want a maximum.");
         else maxMg = maxIn.value;
+      }
+
+      var maxDay = null;
+      if (!maxDayIn.empty) {
+        if (isNaN(maxDayIn.value)) messages.push("Maximum per day must be a number, or left blank.");
+        else if (maxDayIn.value < 0) messages.push("Maximum per day cannot be a negative number.");
+        else if (maxDayIn.value === 0) messages.push("Maximum per day cannot be zero. Leave it blank if you do not want a daily maximum.");
+        else maxDay = maxDayIn.value;
       }
 
       if (messages.length) {
@@ -650,6 +692,16 @@
         maxWarningEl.classList.remove("hidden");
       }
 
+      var overDay = maxDay !== null && mgPerDay > maxDay + 1e-9;
+      if (overDay) {
+        dayWarningEl.innerHTML =
+          "<strong>The daily total is above the maximum per day you entered.</strong>" +
+          "<p>Total mg per day: <strong>" + formatMg(mgPerDay) + " mg</strong><br>" +
+          "Maximum per day you entered: <strong>" + formatMg(maxDay) + " mg</strong></p>" +
+          "<p>Check the dose and the number of doses per day with the prescriber before giving.</p>";
+        dayWarningEl.classList.remove("hidden");
+      }
+
       document.getElementById("give-ml").textContent = formatMl(mlToGive) + " mL";
       document.getElementById("give-sub").textContent =
         "of the " + formatMg(strengthMg) + " mg / " + formatMg(strengthMl) + " mL syrup, " + timesText(times) +
@@ -659,7 +711,8 @@
       document.getElementById("out-mg-dose").textContent = formatMg(mgForVolume) + " mg" +
         (capped ? " (capped)" : "");
       document.getElementById("out-ml-dose").textContent = formatMl(mlToGive) + " mL";
-      document.getElementById("out-mg-day").textContent = formatMg(mgPerDay) + " mg";
+      document.getElementById("out-mg-day").textContent = formatMg(mgPerDay) + " mg" +
+        (overDay ? " (above daily max)" : "");
       document.getElementById("out-ml-day").textContent = formatMl(mlPerDay) + " mL";
       resultsEl.classList.remove("hidden");
 
@@ -685,6 +738,10 @@
       lines.push("total mg per day = mg per dose × doses per day");
       lines.push("                 = " + formatMg(mgForVolume) + " × " + times + " = " + formatMg(mgPerDay) + " mg");
       lines.push("");
+      if (maxDay !== null) {
+        lines.push("Daily maximum check: " + formatMg(mgPerDay) + " mg " + (overDay ? "is ABOVE" : "is within") + " the " + formatMg(maxDay) + " mg per day you entered");
+        lines.push("");
+      }
       lines.push("total mL per day = mL per dose × doses per day");
       lines.push("                 = " + formatMl(mlToGive) + " × " + times + " = " + formatMl(mlPerDay) + " mL");
       lines.push("");
@@ -710,6 +767,7 @@
       document.getElementById("strength-mg").value = "250";
       document.getElementById("strength-ml").value = "5";
       document.getElementById("max-mg").value = "";
+      document.getElementById("max-day").value = "";
       hideOutputs();
     });
 
