@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Children's syrup dose calculator (study use)</title>
+  <style>
+    :root {
+      --text: #1a2330;
+      --muted: #4a5568;
+      --bg: #f4f7fb;
+      --card: #ffffff;
+      --line: #d5dee8;
+      --accent: #1d4e89;
+      --accent-dark: #163a66;
+      --warning-bg: #fff6e5;
+      --warning-border: #e2a100;
+      --danger-bg: #fdecec;
+      --danger-border: #c0392b;
+      --danger-text: #8e1d1d;
+      --ok-bg: #eef8f1;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.45;
+    }
+
+    .wrap {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 1.25rem 1rem 2.5rem;
+    }
+
+    h1 {
+      margin: 0 0 0.35rem;
+      font-size: 1.6rem;
+    }
+
+    .lead {
+      margin: 0 0 1rem;
+      color: var(--muted);
+    }
+
+    .disclaimer {
+      background: #fff3cd;
+      border: 2px solid #e0b000;
+      border-radius: 10px;
+      padding: 0.85rem 1rem;
+      font-weight: 600;
+      margin-bottom: 1.1rem;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 1rem 1.1rem 1.15rem;
+      margin-bottom: 1rem;
+    }
+
+    h2 {
+      margin: 0 0 0.85rem;
+      font-size: 1.15rem;
+    }
+
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .hint {
+      font-weight: 400;
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin: 0 0 0.4rem;
+    }
+
+    .field {
+      margin-bottom: 0.95rem;
+    }
+
+    input[type="text"],
+    input[type="number"] {
+      width: 100%;
+      max-width: 280px;
+      font-size: 1.05rem;
+      padding: 0.5rem 0.6rem;
+      border: 1px solid #9aa8b8;
+      border-radius: 8px;
+    }
+
+    .inline-strength {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.45rem 0.6rem;
+    }
+
+    .inline-strength input {
+      max-width: 110px;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      margin-top: 0.4rem;
+    }
+
+    button {
+      font-size: 1.05rem;
+      font-weight: 600;
+      padding: 0.55rem 1rem;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+    }
+
+    .btn-calc {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .btn-calc:hover { background: var(--accent-dark); }
+
+    .btn-clear {
+      background: #e8eef4;
+      color: var(--text);
+    }
+
+    .hidden { display: none; }
+
+    .errors {
+      background: var(--danger-bg);
+      border: 2px solid var(--danger-border);
+      color: var(--danger-text);
+      border-radius: 10px;
+      padding: 0.8rem 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .errors ul {
+      margin: 0.35rem 0 0;
+      padding-left: 1.2rem;
+    }
+
+    .weight-note {
+      background: var(--warning-bg);
+      border: 2px solid var(--warning-border);
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      margin-bottom: 1rem;
+      font-weight: 600;
+    }
+
+    .max-warning {
+      background: var(--danger-bg);
+      border: 2px solid var(--danger-border);
+      color: var(--danger-text);
+      border-radius: 10px;
+      padding: 0.85rem 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .results dl {
+      display: grid;
+      grid-template-columns: minmax(8rem, 40%) 1fr;
+      gap: 0.45rem 0.8rem;
+      margin: 0;
+    }
+
+    .results dt { color: var(--muted); }
+    .results dd {
+      margin: 0;
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+
+    .formula {
+      white-space: pre-wrap;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 0.92rem;
+      background: #f0f4f8;
+      border-radius: 8px;
+      padding: 0.85rem 1rem;
+      overflow-x: auto;
+    }
+
+    footer {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Children's syrup dose calculator</h1>
+    <p class="lead">You type every number from the prescription or medicine box. This page only does the maths. It has no built-in drug names or doses.</p>
+
+    <p class="disclaimer">For study use only. Always confirm the dose with a pharmacist or doctor.</p>
+
+    <form class="card" id="dose-form" novalidate>
+      <h2>Enter the numbers</h2>
+
+      <div class="field">
+        <label for="weight">Child's weight (kg)</label>
+        <p class="hint">Use kilograms only, not pounds.</p>
+        <input id="weight" name="weight" type="text" inputmode="decimal" autocomplete="off">
+      </div>
+
+      <div class="field">
+        <label for="mg-per-kg">Dose in mg/kg <strong>per dose</strong></label>
+        <p class="hint">This is the amount for one dose, not the whole day.</p>
+        <input id="mg-per-kg" name="mg-per-kg" type="text" inputmode="decimal" autocomplete="off">
+      </div>
+
+      <div class="field">
+        <label for="doses-per-day">Number of doses per day</label>
+        <p class="hint">Used only to work out the daily totals. It does not change the mL of one dose.</p>
+        <input id="doses-per-day" name="doses-per-day" type="text" inputmode="decimal" autocomplete="off">
+      </div>
+
+      <div class="field">
+        <label>Syrup strength</label>
+        <p class="hint">From the bottle, for example 250 mg in 5 mL. You can change the mL if the label is different.</p>
+        <div class="inline-strength">
+          <input id="strength-mg" name="strength-mg" type="text" inputmode="decimal" autocomplete="off" aria-label="Strength in milligrams">
+          <span>mg in</span>
+          <input id="strength-ml" name="strength-ml" type="text" inputmode="decimal" autocomplete="off" value="5" aria-label="Strength volume in millilitres">
+          <span>mL</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="max-mg">Maximum dose per dose (mg) — optional</label>
+        <p class="hint">Leave blank if you are not using a maximum. This is a maximum for <strong>one dose</strong>, not the whole day.</p>
+        <input id="max-mg" name="max-mg" type="text" inputmode="decimal" autocomplete="off">
+      </div>
+
+      <div class="actions">
+        <button type="submit" class="btn-calc">Calculate</button>
+        <button type="button" class="btn-clear" id="clear-btn">Clear</button>
+      </div>
+    </form>
+
+    <div id="errors" class="errors hidden" role="alert"></div>
+    <div id="weight-warning" class="weight-note hidden" role="status"></div>
+    <div id="max-warning" class="max-warning hidden" role="alert"></div>
+
+    <section id="results" class="card results hidden">
+      <h2>Results</h2>
+      <dl>
+        <dt>mg per dose</dt>
+        <dd id="out-mg-dose"></dd>
+        <dt>mL per dose to give</dt>
+        <dd id="out-ml-dose"></dd>
+        <dt>total mg per day</dt>
+        <dd id="out-mg-day"></dd>
+        <dt>total mL per day</dt>
+        <dd id="out-ml-day"></dd>
+      </dl>
+    </section>
+
+    <section id="formula-card" class="card hidden">
+      <h2>How this was calculated</h2>
+      <p class="hint">Check these steps against the prescription and a calculator.</p>
+      <pre class="formula" id="formula"></pre>
+    </section>
+
+    <footer>
+      <p>No medicine names or usual doses are stored in this app. Rounding: mL is shown to 1 decimal place. If a maximum cap was used, mL is rounded down so it does not go above that maximum.</p>
+    </footer>
+  </div>
+
+  <script>
+    function parseNumber(raw) {
+      var text = String(raw || "").trim().replace(",", ".");
+      if (text === "") return { empty: true, value: NaN };
+      if (!/^-?\d+(\.\d+)?$/.test(text)) return { empty: false, value: NaN };
+      return { empty: false, value: Number(text) };
+    }
+
+    function roundTo1(n) {
+      return Math.round((n + Number.EPSILON) * 10) / 10;
+    }
+
+    function floorTo1(n) {
+      return Math.floor(n * 10 + 1e-9) / 10;
+    }
+
+    function formatMg(n) {
+      var rounded = Math.round(n * 100) / 100;
+      if (Math.abs(rounded - Math.round(rounded)) < 1e-9) return String(Math.round(rounded));
+      return rounded.toFixed(2).replace(/0$/, "");
+    }
+
+    function formatMl(n) {
+      return n.toFixed(1);
+    }
+
+    function mgFromMl(ml, strengthMg, strengthMl) {
+      return ml * (strengthMg / strengthMl);
+    }
+
+    function mlNeverAboveMax(exactMl, maxMg, strengthMg, strengthMl) {
+      var ml = floorTo1(exactMl);
+      while (ml > 0 && mgFromMl(ml, strengthMg, strengthMl) - maxMg > 1e-8) {
+        ml = Math.round((ml - 0.1) * 10) / 10;
+      }
+      if (ml < 0) ml = 0;
+      return ml;
+    }
+
+    var form = document.getElementById("dose-form");
+    var errorsEl = document.getElementById("errors");
+    var weightWarningEl = document.getElementById("weight-warning");
+    var maxWarningEl = document.getElementById("max-warning");
+    var resultsEl = document.getElementById("results");
+    var formulaCard = document.getElementById("formula-card");
+    var formulaEl = document.getElementById("formula");
+
+    function hideOutputs() {
+      errorsEl.classList.add("hidden");
+      weightWarningEl.classList.add("hidden");
+      maxWarningEl.classList.add("hidden");
+      resultsEl.classList.add("hidden");
+      formulaCard.classList.add("hidden");
+    }
+
+    function showErrors(messages) {
+      errorsEl.innerHTML = "<strong>Please check these boxes:</strong><ul>" +
+        messages.map(function (m) { return "<li>" + m + "</li>"; }).join("") +
+        "</ul>";
+      errorsEl.classList.remove("hidden");
+    }
+
+    form.addEventListener("submit", function (event) {
+      event.preventDefault();
+      hideOutputs();
+
+      var weightIn = parseNumber(document.getElementById("weight").value);
+      var mgPerKgIn = parseNumber(document.getElementById("mg-per-kg").value);
+      var timesIn = parseNumber(document.getElementById("doses-per-day").value);
+      var strengthMgIn = parseNumber(document.getElementById("strength-mg").value);
+      var strengthMlIn = parseNumber(document.getElementById("strength-ml").value);
+      var maxRaw = document.getElementById("max-mg").value;
+      var maxIn = parseNumber(maxRaw);
+
+      var messages = [];
+
+      if (weightIn.empty) messages.push("Please enter the child's weight in kg.");
+      else if (isNaN(weightIn.value)) messages.push("Weight must be a number, for example 12.5");
+      else if (weightIn.value < 0) messages.push("Weight cannot be a negative number.");
+      else if (weightIn.value === 0) messages.push("Weight cannot be zero.");
+
+      if (mgPerKgIn.empty) messages.push("Please enter the dose in mg/kg per dose.");
+      else if (isNaN(mgPerKgIn.value)) messages.push("mg/kg per dose must be a number.");
+      else if (mgPerKgIn.value < 0) messages.push("mg/kg per dose cannot be a negative number.");
+      else if (mgPerKgIn.value === 0) messages.push("mg/kg per dose cannot be zero.");
+
+      if (timesIn.empty) messages.push("Please enter how many doses are given per day.");
+      else if (isNaN(timesIn.value)) messages.push("Doses per day must be a number.");
+      else if (timesIn.value < 0) messages.push("Doses per day cannot be a negative number.");
+      else if (timesIn.value === 0) messages.push("Doses per day cannot be zero.");
+
+      if (strengthMgIn.empty) messages.push("Please enter the syrup strength in mg.");
+      else if (isNaN(strengthMgIn.value)) messages.push("Strength (mg) must be a number.");
+      else if (strengthMgIn.value < 0) messages.push("Strength (mg) cannot be a negative number.");
+      else if (strengthMgIn.value === 0) messages.push("Strength (mg) cannot be zero (that would make the maths divide by zero).");
+
+      if (strengthMlIn.empty) messages.push("Please enter the strength volume in mL.");
+      else if (isNaN(strengthMlIn.value)) messages.push("Strength (mL) must be a number.");
+      else if (strengthMlIn.value < 0) messages.push("Strength (mL) cannot be a negative number.");
+      else if (strengthMlIn.value === 0) messages.push("Strength (mL) cannot be zero.");
+
+      var maxMg = null;
+      if (!maxIn.empty) {
+        if (isNaN(maxIn.value)) messages.push("Maximum dose must be a number, or left blank.");
+        else if (maxIn.value < 0) messages.push("Maximum dose cannot be a negative number.");
+        else if (maxIn.value === 0) messages.push("Maximum dose cannot be zero. Leave it blank if you do not want a maximum.");
+        else maxMg = maxIn.value;
+      }
+
+      if (messages.length) {
+        showErrors(messages);
+        return;
+      }
+
+      var weight = weightIn.value;
+      var mgPerKg = mgPerKgIn.value;
+      var times = timesIn.value;
+      var strengthMg = strengthMgIn.value;
+      var strengthMl = strengthMlIn.value;
+
+      var calculatedMg = weight * mgPerKg;
+      var capped = maxMg !== null && calculatedMg > maxMg + 1e-9;
+      var mgForVolume = capped ? maxMg : calculatedMg;
+      var exactMl = mgForVolume * (strengthMl / strengthMg);
+      var mlToGive = capped
+        ? mlNeverAboveMax(exactMl, maxMg, strengthMg, strengthMl)
+        : roundTo1(exactMl);
+
+      var mgPerDay = mgForVolume * times;
+      var mlPerDay = roundTo1(mlToGive * times);
+
+      if (weight > 50) {
+        weightWarningEl.textContent = "Please double-check: this is a children's calculator. The weight you entered is above 50 kg. The maths will still be shown.";
+        weightWarningEl.classList.remove("hidden");
+      }
+
+      if (capped) {
+        maxWarningEl.innerHTML =
+          "<strong>This calculated dose is above the maximum you entered.</strong>" +
+          "<p>Calculated mg per dose: <strong>" + formatMg(calculatedMg) + " mg</strong><br>" +
+          "Maximum you entered: <strong>" + formatMg(maxMg) + " mg</strong><br>" +
+          "Capped dose: <strong>" + formatMg(maxMg) + " mg</strong> → <strong>" + formatMl(mlToGive) + " mL</strong> (mL rounded down so it does not go above the maximum).</p>";
+        maxWarningEl.classList.remove("hidden");
+      }
+
+      document.getElementById("out-mg-dose").textContent = formatMg(mgForVolume) + " mg" +
+        (capped ? " (capped)" : "");
+      document.getElementById("out-ml-dose").textContent = formatMl(mlToGive) + " mL";
+      document.getElementById("out-mg-day").textContent = formatMg(mgPerDay) + " mg";
+      document.getElementById("out-ml-day").textContent = formatMl(mlPerDay) + " mL";
+      resultsEl.classList.remove("hidden");
+
+      var lines = [];
+      lines.push("mg per dose = weight × mg/kg per dose");
+      lines.push("           = " + weight + " × " + mgPerKg + " = " + formatMg(calculatedMg) + " mg");
+      lines.push("");
+      if (capped) {
+        lines.push("This is above the maximum of " + formatMg(maxMg) + " mg, so the dose is capped.");
+        lines.push("Capped mg per dose = " + formatMg(maxMg) + " mg");
+        lines.push("");
+        lines.push("mL per dose = capped mg × (strength mL ÷ strength mg)");
+        lines.push("            = " + formatMg(maxMg) + " × (" + strengthMl + " ÷ " + strengthMg + ")");
+        lines.push("            = " + exactMl.toFixed(4) + " mL before rounding");
+        lines.push("Rounded DOWN to 1 decimal place so it stays within the maximum: " + formatMl(mlToGive) + " mL");
+      } else {
+        lines.push("mL per dose = mg per dose × (strength mL ÷ strength mg)");
+        lines.push("            = " + formatMg(calculatedMg) + " × (" + strengthMl + " ÷ " + strengthMg + ")");
+        lines.push("            = " + exactMl.toFixed(4) + " mL before rounding");
+        lines.push("Rounded to 1 decimal place: " + formatMl(mlToGive) + " mL");
+      }
+      lines.push("");
+      lines.push("total mg per day = mg per dose × doses per day");
+      lines.push("                 = " + formatMg(mgForVolume) + " × " + times + " = " + formatMg(mgPerDay) + " mg");
+      lines.push("");
+      lines.push("total mL per day = mL per dose × doses per day");
+      lines.push("                 = " + formatMl(mlToGive) + " × " + times + " = " + formatMl(mlPerDay) + " mL");
+      lines.push("");
+      lines.push("Doses per day does not change the mL of a single dose.");
+
+      formulaEl.textContent = lines.join("\n");
+      formulaCard.classList.remove("hidden");
+    });
+
+    document.getElementById("clear-btn").addEventListener("click", function () {
+      form.reset();
+      document.getElementById("strength-ml").value = "5";
+      hideOutputs();
+      document.getElementById("weight").focus();
+    });
+  </script>
+</body>
+</html>
