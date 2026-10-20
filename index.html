@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Children's syrup dose calculator (study use)</title>
+  <title>Children's Syrup Dose Calculator</title>
+  <meta name="description" content="Pharmacist-designed calculator for children's syrup doses by weight. Study use only.">
   <style>
     :root {
       --text: #1a2330;
@@ -13,12 +14,14 @@
       --line: #d5dee8;
       --accent: #1d4e89;
       --accent-dark: #163a66;
+      --accent-soft: #e8f0fa;
+      --teal: #0f766e;
+      --teal-soft: #e6f4f2;
       --warning-bg: #fff6e5;
       --warning-border: #e2a100;
       --danger-bg: #fdecec;
       --danger-border: #c0392b;
       --danger-text: #8e1d1d;
-      --ok-bg: #eef8f1;
     }
 
     * { box-sizing: border-box; }
@@ -31,20 +34,43 @@
       line-height: 1.45;
     }
 
-    .wrap {
-      max-width: 760px;
+    .hero {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--teal) 100%);
+      color: #fff;
+      padding: 2rem 1rem 2.4rem;
+    }
+
+    .hero-inner, .wrap {
+      max-width: 820px;
       margin: 0 auto;
-      padding: 1.25rem 1rem 2.5rem;
     }
 
-    h1 {
-      margin: 0 0 0.35rem;
-      font-size: 1.6rem;
+    .badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.18);
+      border: 1px solid rgba(255,255,255,0.35);
+      border-radius: 999px;
+      padding: 0.2rem 0.75rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
     }
 
-    .lead {
-      margin: 0 0 1rem;
-      color: var(--muted);
+    .hero h1 {
+      margin: 0 0 0.5rem;
+      font-size: 2rem;
+      line-height: 1.2;
+    }
+
+    .hero p {
+      margin: 0;
+      font-size: 1.08rem;
+      max-width: 640px;
+      opacity: 0.95;
+    }
+
+    .wrap {
+      padding: 0 1rem 2.5rem;
     }
 
     .disclaimer {
@@ -53,20 +79,115 @@
       border-radius: 10px;
       padding: 0.85rem 1rem;
       font-weight: 600;
-      margin-bottom: 1.1rem;
+      margin: -1.2rem 0 1.2rem;
+      position: relative;
+    }
+
+    .section-title {
+      font-size: 1.2rem;
+      margin: 1.6rem 0 0.8rem;
+    }
+
+    .purpose-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.8rem;
+    }
+
+    .purpose {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 0.9rem 1rem;
+    }
+
+    .purpose .icon {
+      font-size: 1.5rem;
+      line-height: 1;
+      margin-bottom: 0.4rem;
+    }
+
+    .purpose h3 {
+      margin: 0 0 0.3rem;
+      font-size: 1rem;
+    }
+
+    .purpose p {
+      margin: 0;
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.8rem;
+      counter-reset: step;
+    }
+
+    .step {
+      background: var(--accent-soft);
+      border-radius: 12px;
+      padding: 0.85rem 1rem 0.9rem;
+      font-size: 0.95rem;
+    }
+
+    .step::before {
+      counter-increment: step;
+      content: counter(step);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.7rem;
+      height: 1.7rem;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+    }
+
+    .step strong { display: block; margin-bottom: 0.15rem; }
+
+    .safety-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .safety-list li {
+      background: var(--teal-soft);
+      color: var(--teal);
+      border: 1px solid #b7e0da;
+      border-radius: 999px;
+      padding: 0.3rem 0.8rem;
+      font-size: 0.9rem;
+      font-weight: 600;
     }
 
     .card {
       background: var(--card);
       border: 1px solid var(--line);
       border-radius: 12px;
-      padding: 1rem 1.1rem 1.15rem;
+      padding: 1.1rem 1.2rem 1.2rem;
       margin-bottom: 1rem;
     }
 
+    .card-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-bottom: 0.85rem;
+    }
+
     h2 {
-      margin: 0 0 0.85rem;
-      font-size: 1.15rem;
+      margin: 0;
+      font-size: 1.2rem;
     }
 
     label {
@@ -82,18 +203,20 @@
       margin: 0 0 0.4rem;
     }
 
-    .field {
-      margin-bottom: 0.95rem;
-    }
+    .field { margin-bottom: 0.95rem; }
 
-    input[type="text"],
-    input[type="number"] {
+    input[type="text"] {
       width: 100%;
       max-width: 280px;
       font-size: 1.05rem;
       padding: 0.5rem 0.6rem;
       border: 1px solid #9aa8b8;
       border-radius: 8px;
+    }
+
+    input[type="text"]:focus {
+      outline: 3px solid #b9cfee;
+      border-color: var(--accent);
     }
 
     .inline-strength {
@@ -103,9 +226,7 @@
       gap: 0.45rem 0.6rem;
     }
 
-    .inline-strength input {
-      max-width: 110px;
-    }
+    .inline-strength input { max-width: 110px; }
 
     .actions {
       display: flex;
@@ -121,21 +242,20 @@
       border-radius: 8px;
       border: none;
       cursor: pointer;
+      font-family: inherit;
     }
 
-    .btn-calc {
-      background: var(--accent);
-      color: #fff;
-    }
-
+    .btn-calc { background: var(--accent); color: #fff; }
     .btn-calc:hover { background: var(--accent-dark); }
-
-    .btn-clear {
-      background: #e8eef4;
-      color: var(--text);
+    .btn-clear { background: #e8eef4; color: var(--text); }
+    .btn-small {
+      font-size: 0.9rem;
+      padding: 0.35rem 0.75rem;
+      background: var(--accent-soft);
+      color: var(--accent);
     }
 
-    .hidden { display: none; }
+    .hidden { display: none !important; }
 
     .errors {
       background: var(--danger-bg);
@@ -146,10 +266,7 @@
       margin-bottom: 1rem;
     }
 
-    .errors ul {
-      margin: 0.35rem 0 0;
-      padding-left: 1.2rem;
-    }
+    .errors ul { margin: 0.35rem 0 0; padding-left: 1.2rem; }
 
     .weight-note {
       background: var(--warning-bg);
@@ -169,6 +286,32 @@
       margin-bottom: 1rem;
     }
 
+    .give {
+      background: var(--teal-soft);
+      border: 2px solid var(--teal);
+      border-radius: 12px;
+      padding: 1rem 1.1rem;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    .give .label {
+      font-size: 0.95rem;
+      color: var(--teal);
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .give .big {
+      font-size: 2.4rem;
+      font-weight: 800;
+      color: var(--teal);
+      margin: 0.1rem 0;
+      line-height: 1.15;
+    }
+
+    .give .sub { margin: 0; font-size: 1rem; }
+
     .results dl {
       display: grid;
       grid-template-columns: minmax(8rem, 40%) 1fr;
@@ -177,11 +320,7 @@
     }
 
     .results dt { color: var(--muted); }
-    .results dd {
-      margin: 0;
-      font-size: 1.2rem;
-      font-weight: 700;
-    }
+    .results dd { margin: 0; font-size: 1.2rem; font-weight: 700; }
 
     .formula {
       white-space: pre-wrap;
@@ -191,23 +330,91 @@
       border-radius: 8px;
       padding: 0.85rem 1rem;
       overflow-x: auto;
+      margin: 0;
     }
 
     footer {
       color: var(--muted);
       font-size: 0.9rem;
+      border-top: 1px solid var(--line);
+      margin-top: 1.5rem;
+      padding-top: 1rem;
+    }
+
+    footer p { margin: 0 0 0.5rem; }
+
+    @media (max-width: 640px) {
+      .hero h1 { font-size: 1.6rem; }
+      .purpose-grid, .steps { grid-template-columns: 1fr; }
+      .give .big { font-size: 2rem; }
+    }
+
+    @media print {
+      body { background: #fff; }
+      .hero { background: none; color: var(--text); padding: 0 0 1rem; }
+      .badge, .intro, #dose-form .actions, .btn-small, .no-print { display: none !important; }
+      .disclaimer { margin: 0 0 1rem; }
+      .card { break-inside: avoid; }
     }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <h1>Children's syrup dose calculator</h1>
-    <p class="lead">You type every number from the prescription or medicine box. This page only does the maths. It has no built-in drug names or doses.</p>
+  <header class="hero">
+    <div class="hero-inner">
+      <span class="badge">Designed by a pharmacist</span>
+      <h1>Children's Syrup Dose Calculator</h1>
+      <p>Turns a weight-based prescription into the exact millilitres of syrup to give, with built-in checks that catch common dosing mistakes before they reach the child.</p>
+    </div>
+  </header>
 
+  <main class="wrap">
     <p class="disclaimer">For study use only. Always confirm the dose with a pharmacist or doctor.</p>
 
+    <section class="intro">
+      <h2 class="section-title">Why this calculator exists</h2>
+      <div class="purpose-grid">
+        <div class="purpose">
+          <div class="icon" aria-hidden="true">⚖️</div>
+          <h3>Children's doses depend on weight</h3>
+          <p>Most syrups for children are prescribed in mg per kg, so every child needs their own calculation.</p>
+        </div>
+        <div class="purpose">
+          <div class="icon" aria-hidden="true">🧮</div>
+          <h3>mg to mL is easy to get wrong</h3>
+          <p>Mixing up "per dose" and "per day", or misreading the bottle strength, can mean giving too much or too little.</p>
+        </div>
+        <div class="purpose">
+          <div class="icon" aria-hidden="true">🛡️</div>
+          <h3>Safety first</h3>
+          <p>The app warns, caps doses above the maximum, and shows every step so a pharmacist can check it in seconds.</p>
+        </div>
+      </div>
+
+      <h2 class="section-title">How it works</h2>
+      <div class="steps">
+        <div class="step"><strong>Enter the prescription</strong>Weight, dose in mg/kg per dose, and how many times a day.</div>
+        <div class="step"><strong>Enter the bottle strength</strong>Copy it from the label, for example 250 mg in 5 mL.</div>
+        <div class="step"><strong>Get the mL to give</strong>See the dose, daily totals and the full working.</div>
+      </div>
+
+      <h2 class="section-title">Built-in safety checks</h2>
+      <ul class="safety-list">
+        <li>Maximum-dose cap</li>
+        <li>Rounds down when capped</li>
+        <li>High-weight warning</li>
+        <li>Per dose vs per day labels</li>
+        <li>Input checks</li>
+        <li>Full visible working</li>
+        <li>No stored drug data</li>
+      </ul>
+      <h2 class="section-title">Calculate a dose</h2>
+    </section>
+
     <form class="card" id="dose-form" novalidate>
-      <h2>Enter the numbers</h2>
+      <div class="card-head">
+        <h2>Enter the numbers</h2>
+        <button type="button" class="btn-small" id="example-btn">Try an example</button>
+      </div>
 
       <div class="field">
         <label for="weight">Child's weight (kg)</label>
@@ -254,8 +461,17 @@
     <div id="weight-warning" class="weight-note hidden" role="status"></div>
     <div id="max-warning" class="max-warning hidden" role="alert"></div>
 
+    <div id="give" class="give hidden" aria-live="polite">
+      <p class="label">Give</p>
+      <p class="big" id="give-ml"></p>
+      <p class="sub" id="give-sub"></p>
+    </div>
+
     <section id="results" class="card results hidden">
-      <h2>Results</h2>
+      <div class="card-head">
+        <h2>Results</h2>
+        <button type="button" class="btn-small no-print" id="print-btn">Print result</button>
+      </div>
       <dl>
         <dt>mg per dose</dt>
         <dd id="out-mg-dose"></dd>
@@ -275,9 +491,11 @@
     </section>
 
     <footer>
-      <p>No medicine names or usual doses are stored in this app. Rounding: mL is shown to 1 decimal place. If a maximum cap was used, mL is rounded down so it does not go above that maximum.</p>
+      <p>No medicine names or usual doses are stored in this app. Doses must come from a trusted reference, such as the BNF for Children or the WHO AWaRe Antibiotic Book.</p>
+      <p>Rounding: mL is shown to 1 decimal place. If a maximum cap was used, mL is rounded down so it does not go above that maximum.</p>
+      <p>Designed by Uzma Amin, Pharmacist · Built with AI-assisted coding in Cursor · iSkills SEBT Next</p>
     </footer>
-  </div>
+  </main>
 
   <script>
     function parseNumber(raw) {
@@ -318,10 +536,17 @@
       return ml;
     }
 
+    function timesText(times) {
+      if (times === 1) return "once a day";
+      if (times === 2) return "twice a day";
+      return times + " times a day";
+    }
+
     var form = document.getElementById("dose-form");
     var errorsEl = document.getElementById("errors");
     var weightWarningEl = document.getElementById("weight-warning");
     var maxWarningEl = document.getElementById("max-warning");
+    var giveEl = document.getElementById("give");
     var resultsEl = document.getElementById("results");
     var formulaCard = document.getElementById("formula-card");
     var formulaEl = document.getElementById("formula");
@@ -330,6 +555,7 @@
       errorsEl.classList.add("hidden");
       weightWarningEl.classList.add("hidden");
       maxWarningEl.classList.add("hidden");
+      giveEl.classList.add("hidden");
       resultsEl.classList.add("hidden");
       formulaCard.classList.add("hidden");
     }
@@ -424,6 +650,12 @@
         maxWarningEl.classList.remove("hidden");
       }
 
+      document.getElementById("give-ml").textContent = formatMl(mlToGive) + " mL";
+      document.getElementById("give-sub").textContent =
+        "of the " + formatMg(strengthMg) + " mg / " + formatMg(strengthMl) + " mL syrup, " + timesText(times) +
+        " (" + formatMg(mgForVolume) + " mg per dose" + (capped ? ", capped" : "") + ")";
+      giveEl.classList.remove("hidden");
+
       document.getElementById("out-mg-dose").textContent = formatMg(mgForVolume) + " mg" +
         (capped ? " (capped)" : "");
       document.getElementById("out-ml-dose").textContent = formatMl(mlToGive) + " mL";
@@ -460,6 +692,8 @@
 
       formulaEl.textContent = lines.join("\n");
       formulaCard.classList.remove("hidden");
+
+      giveEl.scrollIntoView({ behavior: "smooth", block: "start" });
     });
 
     document.getElementById("clear-btn").addEventListener("click", function () {
@@ -467,6 +701,20 @@
       document.getElementById("strength-ml").value = "5";
       hideOutputs();
       document.getElementById("weight").focus();
+    });
+
+    document.getElementById("example-btn").addEventListener("click", function () {
+      document.getElementById("weight").value = "10";
+      document.getElementById("mg-per-kg").value = "15";
+      document.getElementById("doses-per-day").value = "3";
+      document.getElementById("strength-mg").value = "250";
+      document.getElementById("strength-ml").value = "5";
+      document.getElementById("max-mg").value = "";
+      hideOutputs();
+    });
+
+    document.getElementById("print-btn").addEventListener("click", function () {
+      window.print();
     });
   </script>
 </body>
